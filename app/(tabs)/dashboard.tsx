@@ -9,7 +9,6 @@ export default function DashboardScreen() {
       <Typography variant="title">Dashboard</Typography>
       <Typography>Welcome to the Dashboard</Typography>
       <Button title="Start Workout" onPress={() => router.push("/workout")} />
-      <Button title="Logout" onPress={() => router.replace("/")} />
     </Container>
   );
 }
