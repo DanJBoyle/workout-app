@@ -1,30 +1,39 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { Colors } from "@/constants/theme";
+import { Stack } from "expo-router";
 import { useEffect } from 'react';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { initDB } from '@../database/db.js';
+import { initDB } from '@/database/db.js';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
 
-  useEffect( () = > {
+  useEffect( () => {
       initDB();
       }, []);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: Colors.primary,
+        },
+        headerTintColor: Colors.textLight,
+        headerTitleStyle: {
+          fontWeight: "bold",
+        },
+      }}
+    >
+      <Stack.Screen
+        name="index"
+        options={{ title: "Workout App", headerShown: false }}
+      />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="exercise" options={{ title: "Exercise" }} />
+      <Stack.Screen name="workout" options={{ title: "Workout" }} />
+      <Stack.Screen name="completion" options={{ title: "Completion" }} />
+    </Stack>
   );
 }
