@@ -1,5 +1,5 @@
-import Container from "@/components/Container";
-import Typography from "@/components/Typography";
+import Container from "@/components/UI/Container";
+import Typography from "@/components/UI/Typography";
 
 export default function ExerciseScreen() {
   return (

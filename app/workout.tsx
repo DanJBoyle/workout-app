@@ -1,6 +1,6 @@
-import Button from "@/components/Button";
-import Container from "@/components/Container";
-import Typography from "@/components/Typography";
+import Button from "@/components/UI/Button";
+import Container from "@/components/UI/Container";
+import Typography from "@/components/UI/Typography";
 import { router } from "expo-router";
 
 export default function WorkoutScreen() {
