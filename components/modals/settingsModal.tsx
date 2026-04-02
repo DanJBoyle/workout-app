@@ -76,7 +76,13 @@ export default function SettingsModal({
           </View>
         </View>
 
-        <Button title="logout" onPress={() => router.push("/")} />
+        <Button
+          title="logout"
+          onPress={() => {
+            onClose();
+            router.push("/");
+          }}
+        />
       </Container>
     </BaseModal>
   );
