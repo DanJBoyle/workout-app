@@ -1,10 +1,10 @@
-import * as SQLite from 'expo-sqlite';
+import * as SQLite from "expo-sqlite";
 
-export const db = SQLite.openDatabase('workout.db');
+export const db = SQLite.openDatabase("workout.db");
 
 export const initDB = () => {
-    db.transaction(tx => {
-        tx.executeSql(`
+  db.transaction((tx) => {
+    tx.executeSql(`
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT NOT NULL,
@@ -12,7 +12,7 @@ export const initDB = () => {
             );
         `);
 
-        tx.executeSql(`
+    tx.executeSql(`
             CREATE TABLE IF NOT EXISTS templates (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
@@ -21,15 +21,15 @@ export const initDB = () => {
             );
         `);
 
-        tx.executeSql(`
+    tx.executeSql(`
             CREATE TABLE IF NOT EXISTS workouts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
-                group TExT NOT NULL
+                group TEXT NOT NULL
             );
         `);
 
-        tx.executeSql(`
+    tx.executeSql(`
             CREATE TABLE IF NOT EXISTS template_workouts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 template_id INTEGER,
@@ -40,6 +40,6 @@ export const initDB = () => {
                 FOREIGN KEY (workout_id) REFERENCES workouts(id)
             )
         `);
-    });
-    tx.executeSql('PRAGMA foreign_keys = ON;');
-}
+  });
+  tx.executeSql("PRAGMA foreign_keys = ON;");
+};
