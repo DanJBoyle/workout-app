@@ -1,6 +1,6 @@
-import Typography from "@/components/Typography";
 import { Colors, FontSizes, Spacing } from "@/constants/theme";
 import { StyleSheet, TextInput, TextInputProps, View } from "react-native";
+import Typography from "./Typography";
 
 interface Props extends TextInputProps {
   label?: string;

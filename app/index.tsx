@@ -1,7 +1,7 @@
-import Button from "@/components/Button";
-import Container from "@/components/Container";
-import InputField from "@/components/InputField";
-import Typography from "@/components/Typography";
+import Button from "@/components/UI/Button";
+import Container from "@/components/UI/Container";
+import InputField from "@/components/UI/InputField";
+import Typography from "@/components/UI/Typography";
 import { router } from "expo-router";
 import { useState } from "react";
 
