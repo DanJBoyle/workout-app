@@ -1,55 +1,42 @@
+// components/modals/SettingsModal.tsx
 import { Colors } from "@/constants/theme";
+import { useSettings } from "@/context/SettingsContext";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Button from "../UI/Button";
 import Container from "../UI/Container";
 import Typography from "../UI/Typography";
 import BaseModal from "./baseModal";
 
-type WeightUnit = "kg" | "lbs";
-
 type Props = {
   visible: boolean;
   onClose: () => void;
-  weightUnit?: WeightUnit;
-  onWeightUnitChange?: (unit: WeightUnit) => void;
 };
 
-export default function SettingsModal({
-  visible,
-  onClose,
-  weightUnit = "kg",
-  onWeightUnitChange,
-}: Props) {
-  const [localUnit, setLocalUnit] = useState<WeightUnit>(weightUnit);
-
-  const handleUnitToggle = (unit: WeightUnit) => {
-    setLocalUnit(unit);
-    onWeightUnitChange?.(unit);
-  };
+export default function SettingsModal({ visible, onClose }: Props) {
+  const { weightUnit, setWeightUnit } = useSettings();
 
   return (
     <BaseModal visible={visible} onClose={onClose}>
       <Container>
         <Typography variant="title">Settings</Typography>
 
-        {/* Weight Unit Toggle */}
         <View style={styles.settingRow}>
           <Typography variant="body">Weight Unit</Typography>
           <View style={styles.toggleContainer}>
             <TouchableOpacity
               style={[
                 styles.toggleOption,
-                localUnit === "kg" && styles.toggleOptionActive,
+                weightUnit === "kg" && styles.toggleOptionActive,
               ]}
-              onPress={() => handleUnitToggle("kg")}
+              onPress={() => setWeightUnit("kg")}
               activeOpacity={0.7}
             >
               <Typography
                 variant="body"
                 style={
-                  localUnit === "kg" ? styles.activeText : styles.inactiveText
+                  weightUnit === "kg" ? styles.activeText : styles.inactiveText
                 }
               >
                 kg
@@ -59,15 +46,15 @@ export default function SettingsModal({
             <TouchableOpacity
               style={[
                 styles.toggleOption,
-                localUnit === "lbs" && styles.toggleOptionActive,
+                weightUnit === "lbs" && styles.toggleOptionActive,
               ]}
-              onPress={() => handleUnitToggle("lbs")}
+              onPress={() => setWeightUnit("lbs")}
               activeOpacity={0.7}
             >
               <Typography
                 variant="body"
                 style={
-                  localUnit === "lbs" ? styles.activeText : styles.inactiveText
+                  weightUnit === "lbs" ? styles.activeText : styles.inactiveText
                 }
               >
                 lbs
