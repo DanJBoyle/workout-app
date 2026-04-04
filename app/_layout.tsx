@@ -1,5 +1,7 @@
 import { Colors } from "@/constants/theme";
 import { Stack } from "expo-router";
+import { useEffect } from "react";
+import { initDB } from "@/database/database";
 
 
 export const unstable_settings = {
@@ -7,9 +9,10 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
-  //   useEffect( () => {
-  //       initDB();
-  //       }, []);
+    useEffect( () => {
+        console.log("Initializing DB...");
+        initDB();
+        }, []);
 
   return (
     <Stack
