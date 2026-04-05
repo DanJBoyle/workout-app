@@ -1,18 +1,15 @@
 import { Colors } from "@/constants/theme";
 import { SettingsProvider } from "@/context/SettingsContext";
 import { Stack } from "expo-router";
-import { useEffect } from "react";
-import { initDB } from "@/database/database";
 
 export const unstable_settings = {
   anchor: "(tabs)",
 };
 
 export default function RootLayout() {
-    useEffect( () => {
-        console.log("Initializing DB...");
-        initDB();
-        }, []);
+  //   useEffect( () => {
+  //       initDB();
+  //       }, []);
 
   return (
     <SettingsProvider>

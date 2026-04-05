@@ -7,7 +7,7 @@ export const initDB = () => {
     tx.executeSql(`
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT NOT NULL UNIQUE,
+                email TEXT NOT NULL,
                 password TEXT NOT NULL
             );
         `);
@@ -40,54 +40,6 @@ export const initDB = () => {
                 FOREIGN KEY (workout_id) REFERENCES workouts(id)
             )
         `);
-
-    tx.executeSql("PRAGMA foreign_keys = ON;");
   });
+  tx.executeSql("PRAGMA foreign_keys = ON;");
 };
-export const registerUser = (emailInput, passwordInput) => {
-    try  {
-        const existingUser = await findByEmail(emailInput);
-        if (existingUser) {
-            throw new Error("Email already exists");
-        }
-    }
-    return new Promise((resolve, reject) => {
-        db.transaction((tx) => {
-            tx.executeSql(
-            `INSERT INTO users (email, password) VALUES (?, ?)`,
-            [emailInput, passwordInput],
-            (_, result) => {
-                if (result.rowsAffected > 0) {
-                    resolve(result.insertId);
-                } else {
-                    reject(new Error("Failed to register user"));
-                }
-            },
-                (_, error) => {
-                    reject(error);
-                }
-            );
-        });
-    })
-};
-
-export const findByEmail = (emailInput) => {
-return new Promise((resolve, reject) => {
-    db.transaction((tx) =>{
-        tx.executeSql(
-        `SELECT * FROM users WHERE email = ?`,
-        [emailInput],
-        (_, result) => {
-            const rows = result.rows._array;
-            if (rows.length > 0)  {
-                resolve(rows[0]);
-            } else {
-                resolve(null);
-            }
-        },
-            (_, error) => {
-                reject(error);
-            }
-        );
-    });
-})};
