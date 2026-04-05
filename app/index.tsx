@@ -1,7 +1,7 @@
-import Button from "@/components/Button";
-import Container from "@/components/Container";
-import InputField from "@/components/InputField";
-import Typography from "@/components/Typography";
+import Button from "@/components/UI/Button";
+import Container from "@/components/UI/Container";
+import InputField from "@/components/UI/InputField";
+import Typography from "@/components/UI/Typography";
 import { findByEmail, registerUser } from "@/database/db";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -41,7 +41,6 @@ export default function LoginScreen() {
     <Container>
       <Typography variant="title">Login Screen</Typography>
       <Typography>Welcome to the Login Screen</Typography>
-      {error ? <Typography>{error}</Typography> : null}
       <InputField
         label="Email"
         value={email}
