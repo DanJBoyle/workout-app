@@ -1,4 +1,4 @@
-import { AppError } from "@/app/util/errors";
+import { AppError } from "@/util/errors";
 import * as SQLite from "expo-sqlite";
 
 export const db = SQLite.openDatabaseSync("workout.db");
@@ -57,4 +57,16 @@ export const registerUser = (
 
 export const findByEmail = (emailInput: string) => {
   return db.getFirstSync(`SELECT * FROM users WHERE email = ?`, [emailInput]);
+};
+
+export const loginUser = (emailInput: string, passwordInput: string) => {
+  const user = findByEmail(emailInput) as {
+    id: number;
+    email: string;
+    password: string;
+  } | null;
+  if (!user) throw new AppError("User not found", "NOT_FOUND");
+  if (user.password !== passwordInput)
+    throw new AppError("Invalid password", "INVALID_PASSWORD");
+  return user;
 };

@@ -1,8 +1,9 @@
 import { Colors } from "@/constants/theme";
-import { SettingsProvider } from "@/context/SettingsContext";
+import { AuthProvider } from "@/context/AuthContext";
 import { initDB } from "@/database/db";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
+import Toast from "react-native-toast-message";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -15,7 +16,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <SettingsProvider>
+    <AuthProvider>
       <Stack
         screenOptions={{
           headerStyle: {
@@ -36,6 +37,7 @@ export default function RootLayout() {
         <Stack.Screen name="workout" options={{ title: "Workout" }} />
         <Stack.Screen name="completion" options={{ title: "Completion" }} />
       </Stack>
-    </SettingsProvider>
+      <Toast />
+    </AuthProvider>
   );
 }
