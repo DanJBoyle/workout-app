@@ -2,38 +2,33 @@ import Button from "@/components/UI/Button";
 import Container from "@/components/UI/Container";
 import InputField from "@/components/UI/InputField";
 import Typography from "@/components/UI/Typography";
-import { findByEmail, registerUser } from "@/database/db";
+import { useAuth } from "@/context/AuthContext";
+import { registerUser } from "@/database/db";
+import { showToastError } from "@/util/errors";
 import { router } from "expo-router";
 import { useState } from "react";
-import { AppError, parseError } from "./util/errors";
 
 export default function LoginScreen() {
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
 
   const handleRegister = () => {
     try {
-      setError("");
       registerUser(email, password);
+      login(email, password);
       router.replace("/dashboard");
     } catch (err) {
-      setError(parseError(err));
+      showToastError(err);
     }
   };
 
   const handleLogin = () => {
     try {
-      setError("");
-      const user = findByEmail(email) as { email: string; password: string };
-
-      if (!user) throw new AppError("User not found", "NOT_FOUND");
-      if (user.password !== password)
-        throw new AppError("Incorrect password", "WRONG_PASSWORD");
-
+      login(email, password);
       router.replace("/dashboard");
     } catch (err) {
-      setError(parseError(err));
+      showToastError(err);
     }
   };
 
