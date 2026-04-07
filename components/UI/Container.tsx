@@ -7,7 +7,6 @@ export default function Container({ style, ...props }: ViewProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     gap: Spacing.sm,
     padding: Spacing.md,
   },

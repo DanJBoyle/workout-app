@@ -171,7 +171,7 @@ export const getExercisesByGroup = (group) => {
 };
 
 //insert into template_exercises
-export const addExerciseToTemplate = (
+export const addExercisesToTemplate = (
   template_id,
   exercise_id,
   sets,
@@ -180,7 +180,7 @@ export const addExerciseToTemplate = (
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        `INSERT INTO template_exercises
+        `INSERT INTO template_workouts
          (template_id, exercise_id, sets, reps)
          VALUES (?, ?, ?, ?)`,
         [template_id, exercise_id, sets, reps],
