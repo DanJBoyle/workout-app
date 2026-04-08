@@ -8,7 +8,12 @@ import Container from '@/components/UI/Container';
 import Button from '@/components/UI/Button';
 import InputField from '@/components/UI/InputField';
 
-export default function CompletionScreen() {
+// Importing Contexts for the wrapper
+import { useAuth } from '@/context/AuthContext';
+import { SettingsProvider } from '@/context/SettingsContext';
+
+// 1. The main content of the screen
+function CompletionContent() {
   const [templateName, setTemplateName] = useState('');
 
   const handleSaveTemplate = () => {
@@ -72,6 +77,19 @@ export default function CompletionScreen() {
         onPress={() => router.replace('/(tabs)/dashboard')}
       />
     </Container>
+  );
+}
+
+// 2. The safety wrapper
+export default function CompletionScreen() {
+  const { currentUser } = useAuth();
+
+  if (!currentUser) return null;
+
+  return (
+    <SettingsProvider userId={currentUser.id.toString()}>
+      <CompletionContent />
+    </SettingsProvider>
   );
 }
 

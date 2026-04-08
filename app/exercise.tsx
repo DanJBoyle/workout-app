@@ -8,6 +8,10 @@ import Container from '@/components/UI/Container';
 import Button from '@/components/UI/Button';
 import InputField from '@/components/UI/InputField';
 
+// Importing Contexts for the wrapper
+import { useAuth } from '@/context/AuthContext';
+import { SettingsProvider } from '@/context/SettingsContext';
+
 // Mock data spanning different body groups for testing the search function
 const MOCK_EXERCISES = [
   { id: '1', name: 'Barbell Squat', group: 'Legs' },
@@ -19,7 +23,8 @@ const MOCK_EXERCISES = [
   { id: '7', name: 'Bench Press', group: 'Chest' },
 ];
 
-export default function ExerciseScreen() {
+// 1. The main content of the screen
+function ExerciseContent() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Automatically filters the list based on name OR body group
@@ -60,6 +65,19 @@ export default function ExerciseScreen() {
         contentContainerStyle={styles.listContainer}
       />
     </Container>
+  );
+}
+
+// 2. The safety wrapper
+export default function ExerciseScreen() {
+  const { currentUser } = useAuth();
+
+  if (!currentUser) return null;
+
+  return (
+    <SettingsProvider userId={currentUser.id.toString()}>
+      <ExerciseContent />
+    </SettingsProvider>
   );
 }
 

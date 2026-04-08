@@ -77,13 +77,13 @@ export default function LoginScreen() {
               placeholder="Enter your password"
               secureTextEntry
             />
-          </View>
-        </View>
 
-        <View style={styles.buttonContainer}>
-          <Button title="Login" onPress={handleLogin} />
-          <View style={styles.spacer} />
-          <Button title="Register" onPress={handleRegister} />
+            <View style={styles.buttonContainer}>
+              <Button title="Login" onPress={handleLogin} />
+              <View style={styles.spacer} />
+              <Button title="Register" onPress={handleRegister} />
+            </View>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -121,8 +121,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   buttonContainer: {
-    paddingBottom: 20,
-    paddingTop: 10,
+    marginTop: 30,
   },
   spacer: {
     height: 15,
