@@ -1,4 +1,5 @@
 import { Colors } from "@/constants/theme";
+import { AuthProvider } from "@/context/AuthContext";
 import { SettingsProvider } from "@/context/SettingsContext";
 import { initDB } from "@/database/db";
 import { Stack } from "expo-router";
@@ -14,28 +15,31 @@ export default function RootLayout() {
     initDB();
   }, []);
 
+
   return (
-    <SettingsProvider>
-      <Stack
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: Colors.primary,
-          },
-          headerTintColor: Colors.textLight,
-          headerTitleStyle: {
-            fontWeight: "bold",
-          },
-        }}
-      >
-        <Stack.Screen
-          name="index"
-          options={{ title: "Workout App", headerShown: false }}
-        />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="exercise" options={{ title: "Exercise" }} />
-        <Stack.Screen name="workout" options={{ title: "Workout" }} />
-        <Stack.Screen name="completion" options={{ title: "Completion" }} />
-      </Stack>
-    </SettingsProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <Stack
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: Colors.primary,
+              },
+              headerTintColor: Colors.textLight,
+              headerTitleStyle: {
+                fontWeight: "bold",
+              },
+            }}
+          >
+            <Stack.Screen
+              name="index"
+              options={{ title: "Workout App", headerShown: false }}
+            />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="exercise" options={{ title: "Exercise" }} />
+            <Stack.Screen name="workout" options={{ title: "Workout" }} />
+            <Stack.Screen name="completion" options={{ title: "Completion" }} />
+          </Stack>
+        </SettingsProvider>
+      </AuthProvider>
   );
 }

@@ -4,6 +4,7 @@ export const db = SQLite.openDatabase("workout.db");
 
 export const initDB = () => {
   db.transaction((tx) => {
+    tx.executeSql("PRAGMA foreign_keys = ON;");
     tx.executeSql(`
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,8 +41,6 @@ export const initDB = () => {
                 FOREIGN KEY (exercise_id) REFERENCES exercises(id)
             )
         `);
-
-    tx.executeSql("PRAGMA foreign_keys = ON;");
   });
 };
 
@@ -180,7 +179,7 @@ export const addExercisesToTemplate = (
   return new Promise((resolve, reject) => {
     db.transaction((tx) => {
       tx.executeSql(
-        `INSERT INTO template_workouts
+        `INSERT INTO template_exercises
          (template_id, exercise_id, sets, reps)
          VALUES (?, ?, ?, ?)`,
         [template_id, exercise_id, sets, reps],

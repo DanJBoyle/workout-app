@@ -11,26 +11,28 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleRegister = () => {
+  const { login, register } = useAuth();
+
+  const handleRegister = async () => {
     try {
       setError("");
-      registerUser(email, password);
-      router.replace("/dashboard");
+      setSuccess("");
+      await register(email, password);
+      setSuccess("Registration successful! Please log in.");
+      setEmail("");
+      setPassword("");
     } catch (err) {
       setError(parseError(err));
     }
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     try {
       setError("");
-      const user = findByEmail(email) as { email: string; password: string };
-
-      if (!user) throw new AppError("User not found", "NOT_FOUND");
-      if (user.password !== password)
-        throw new AppError("Incorrect password", "WRONG_PASSWORD");
-
+      setSuccess("");
+      await login(email, password);
       router.replace("/dashboard");
     } catch (err) {
       setError(parseError(err));
@@ -57,6 +59,8 @@ export default function LoginScreen() {
       />
       <Button title="Login" onPress={handleLogin} />
       <Button title="Register" onPress={handleRegister} />
+      {error ? <Typography> {error}</Typography> : null}
+      {success ? <Typography>{success}</Typography> : null}
     </Container>
   );
 }
