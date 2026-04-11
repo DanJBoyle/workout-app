@@ -119,6 +119,20 @@ export const createTemplate = (name, user_id) => {
     })
 };
 
+//get templates from one user
+export const getTemplatesByUser = (user_id) => {
+    return new Promise((resolve, reject) => {
+        db.transaction((tx) => {
+            tx.executeSql(
+                `SELECT * FROM templates WHERE user_id = ?`,
+                [user_id],
+                (_, result) => resolve(result.rows._array),
+                (_, error) => reject(error)
+            );
+        });
+    });
+};
+
 //insert into exercises
 export const createExercise = (name, group) => {
   return new Promise((resolve, reject) => {

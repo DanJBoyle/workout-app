@@ -8,9 +8,10 @@ import TemplateModal from "./templateModal";
 type Props = {
   visible: boolean;
   onClose: () => void;
+  onCreated: () => void;
 };
 
-export default function SaveTemplateModal({ visible, onClose }: Props) {
+export default function SaveTemplateModal({ visible, onClose, onCreated }: Props) {
   const [templateModalVisible, setTemplateModalVisible] = useState(false);
 
   return (
@@ -18,6 +19,7 @@ export default function SaveTemplateModal({ visible, onClose }: Props) {
       <BaseModal visible={visible} onClose={onClose}>
         <Container>
           <Typography variant="title">Save Template?</Typography>
+
           <Button
             title="Save"
             onPress={() => {
@@ -25,6 +27,7 @@ export default function SaveTemplateModal({ visible, onClose }: Props) {
               setTemplateModalVisible(true);
             }}
           />
+
           <Button title="Skip" onPress={onClose} />
         </Container>
       </BaseModal>
@@ -32,6 +35,7 @@ export default function SaveTemplateModal({ visible, onClose }: Props) {
       <TemplateModal
         visible={templateModalVisible}
         onClose={() => setTemplateModalVisible(false)}
+        onCreated={onCreated}
       />
     </>
   );

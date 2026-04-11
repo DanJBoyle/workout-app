@@ -5,6 +5,8 @@ export const db = SQLite.openDatabaseSync("workout.db");
 
 export const initDB = () => {
   db.execSync(`
+    PRAGMA foreign_keys = ON;
+
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT NOT NULL UNIQUE,
@@ -18,43 +20,122 @@ export const initDB = () => {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
 
-    CREATE TABLE IF NOT EXISTS workouts (
+    CREATE TABLE IF NOT EXISTS exercises (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL
+      name TEXT NOT NULL,
+      "group" TEXT NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS template_workouts (
+    CREATE TABLE IF NOT EXISTS template_exercises (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       template_id INTEGER,
-      workout_id INTEGER,
+      exercise_id INTEGER,
       sets INTEGER,
       reps INTEGER,
       FOREIGN KEY (template_id) REFERENCES templates(id),
-      FOREIGN KEY (workout_id) REFERENCES workouts(id)
+      FOREIGN KEY (exercise_id) REFERENCES exercises(id)
     );
-
-    PRAGMA foreign_keys = ON;
   `);
+};
+
+// USERS
+export const findByEmail = (emailInput: string) => {
+  return db.getFirstSync(
+    `SELECT * FROM users WHERE email = ?`,
+    [emailInput]
+  );
 };
 
 export const registerUser = (
   emailInput: string,
-  passwordInput: string,
+  passwordInput: string
 ): number => {
   const existing = findByEmail(emailInput);
-  if (existing) throw new AppError("Email already registered", "USER_EXISTS");
+  if (existing) {
+    throw new AppError("Email already registered", "USER_EXISTS");
+  }
 
   const result = db.runSync(
     `INSERT INTO users (email, password) VALUES (?, ?)`,
-    [emailInput, passwordInput],
+    [emailInput, passwordInput]
   );
 
-  if (result.changes === 0)
+  if (result.changes === 0) {
     throw new AppError("Failed to register user", "DB_ERROR");
+  }
 
   return result.lastInsertRowId;
 };
 
-export const findByEmail = (emailInput: string) => {
-  return db.getFirstSync(`SELECT * FROM users WHERE email = ?`, [emailInput]);
+// TEMPLATES
+export const createTemplate = (
+  name: string,
+  user_id: number
+): number => {
+  const result = db.runSync(
+    `INSERT INTO templates (name, user_id) VALUES (?, ?)`,
+    [name, user_id]
+  );
+
+  if (result.changes === 0) {
+    throw new AppError("Failed to create template", "DB_ERROR");
+  }
+
+  return result.lastInsertRowId;
+};
+
+export const getTemplatesByUser = (user_id: number) => {
+  return db.getAllSync(
+    `SELECT * FROM templates WHERE user_id = ?`,
+    [user_id]
+  );
+};
+
+// EXERCISES
+export const createExercise = (
+  name: string,
+  group: string
+): number => {
+  const result = db.runSync(
+    `INSERT INTO exercises (name, "group") VALUES (?, ?)`,
+    [name, group]
+  );
+
+  if (result.changes === 0) {
+    throw new AppError("Failed to create exercise", "DB_ERROR");
+  }
+
+  return result.lastInsertRowId;
+};
+
+export const getAllExercises = () => {
+  return db.getAllSync(`SELECT * FROM exercises`);
+};
+
+export const getExercisesByGroup = (group: string) => {
+  return db.getAllSync(
+    `SELECT * FROM exercises WHERE "group" = ?`,
+    [group]
+  );
+};
+
+// TEMPLATE_EXERCISES
+export const addExercisesToTemplate = (
+  template_id: number,
+  exercise_id: number,
+  sets: number,
+  reps: number
+): number => {
+  const result = db.runSync(
+    `INSERT INTO template_exercises
+     (template_id, exercise_id, sets, reps)
+     VALUES (?, ?, ?, ?)`,
+    [template_id, exercise_id, sets, reps]
+  );
+
+  if (result.changes === 0) {
+    throw new AppError("Failed to add exercise to template", "DB_ERROR");
+  }
+
+  return result.lastInsertRowId;
 };
