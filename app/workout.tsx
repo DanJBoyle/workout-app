@@ -7,8 +7,6 @@ import Typography from '@/components/UI/Typography';
 import Container from '@/components/UI/Container';
 import Button from '@/components/UI/Button';
 import InputField from '@/components/UI/InputField';
-import { useSettings }  from '@/context/SettingsContext';
-// Importing BOTH Auth and Settings Contexts
 import { SettingsProvider, useSettings } from '@/context/SettingsContext';
 
 const MOCK_EXERCISE = { id: '1', name: 'Bench Press' };

@@ -8,6 +8,8 @@ import Button from "@/components/UI/Button";
 
 import { useAuth } from "@/context/AuthContext";
 import { getTemplatesByUser } from "@/database/db";
+import TemplateModal from "@/components/modals/templateModal";
+import SaveTemplateModal from "@/components/modals/saveTemplateModal";
 
 export default function DashboardScreen() {
     const { user } = useAuth();

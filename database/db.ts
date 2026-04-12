@@ -1,4 +1,4 @@
-import { AppError } from "@/app/util/errors";
+import { AppError } from "@/util/errors";
 import * as SQLite from "expo-sqlite";
 
 export const db = SQLite.openDatabaseSync("workout.db");

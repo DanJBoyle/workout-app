@@ -2,10 +2,11 @@ import Button from "@/components/UI/Button";
 import Container from "@/components/UI/Container";
 import InputField from "@/components/UI/InputField";
 import Typography from "@/components/UI/Typography";
+import { useAuth } from "@/context/AuthContext";
 import { findByEmail, registerUser } from "@/database/db";
 import { router } from "expo-router";
 import { useState } from "react";
-import { AppError, parseError } from "./util/errors";
+import { AppError, parseError } from "../util/errors";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
