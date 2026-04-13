@@ -10,12 +10,13 @@ import { useAuth } from "@/context/AuthContext";
 
 type Props = {
   visible: boolean;
-  onClose: () => void;
+  onCreated();
+  onClose();
 };
 
 export default function TemplateModal({ visible, onClose }: Props) {
-    const [name, setName] = useState("");
-
+  const [name, setName] = useState("");
+  const { user } = useAuth();
 
   return (
     <BaseModal visible={visible} onClose={onClose}>
@@ -25,11 +26,11 @@ export default function TemplateModal({ visible, onClose }: Props) {
         <InputField placeholder="Template Name" value={name} onChangeText={setName}/>
         <Button
           title="Save Template"
-          onPress={async () => {
-              if (!user) return;
+          onPress={ () => {
+              if (!user || !name.trim()) return;
+            createTemplate(name, user.id);
+            setName("");
             onClose();
-            await createTemplate(name, user.id);
-            router.push("/dashboard");
           }}
         />
       </Container>

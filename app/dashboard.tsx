@@ -42,7 +42,7 @@ export default function DashboardScreen() {
                 </View>
             ))}
         <Button title="Create Template"
-            onPress={() => router.push("/create-template")}
+            onPress={() => setModalVisible(true)}
         />
         <TemplateModal
                 visible={modalVisible}

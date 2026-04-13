@@ -23,7 +23,8 @@ export const initDB = () => {
     CREATE TABLE IF NOT EXISTS exercises (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      "group" TEXT NOT NULL
+      "group" TEXT NOT NULL,
+      api_id TEXT UNIQUE
     );
 
     CREATE TABLE IF NOT EXISTS template_exercises (
@@ -34,6 +35,12 @@ export const initDB = () => {
       reps INTEGER,
       FOREIGN KEY (template_id) REFERENCES templates(id),
       FOREIGN KEY (exercise_id) REFERENCES exercises(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS exercise_cache (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      body_part TEXT UNIQUE,
+      data TEXT
     );
   `);
 };
@@ -119,6 +126,27 @@ export const getExercisesByGroup = (group: string) => {
   );
 };
 
+export const createOrGetExercise = (
+  name: string,
+  group: string,
+  api_id: string
+): number => {
+  const existing = db.getFirstSync(
+    `SELECT id FROM exercises WHERE api_id = ?`,
+    [api_id]
+  );
+
+  if (existing) return existing.id;
+
+  const result = db.runSync(
+    `INSERT INTO exercises (name, "group", api_id)
+     VALUES (?, ?, ?)`,
+    [name, group, api_id]
+  );
+
+  return result.lastInsertRowId;
+};
+
 // TEMPLATE_EXERCISES
 export const addExercisesToTemplate = (
   template_id: number,
@@ -127,9 +155,7 @@ export const addExercisesToTemplate = (
   reps: number
 ): number => {
   const result = db.runSync(
-    `INSERT INTO template_exercises
-     (template_id, exercise_id, sets, reps)
-     VALUES (?, ?, ?, ?)`,
+    `INSERT INTO template_exercises (template_id, exercise_id, sets, reps) VALUES (?, ?, ?, ?)`,
     [template_id, exercise_id, sets, reps]
   );
 
@@ -138,4 +164,69 @@ export const addExercisesToTemplate = (
   }
 
   return result.lastInsertRowId;
+};
+
+export const updateTemplateExercise = (
+  id: number,
+  sets: number,
+  reps: number
+) => {
+  const result = db.runSync(
+    `UPDATE template_exercises
+     SET sets = ?, reps = ?
+     WHERE id = ?`,
+    [sets, reps, id]
+  );
+
+  if (result.changes === 0) {
+    throw new AppError("Failed to update template exercise", "DB_ERROR");
+  }
+};
+
+// GET EXERCISES FOR TEMPLATE (JOIN)
+export const getExercisesForTemplate = (template_id: number) => {
+  return db.getAllSync(
+    `SELECT
+        te.id as template_exercise_id,
+        te.template_id,
+        te.exercise_id,
+        te.sets,
+        te.reps,
+        e.name
+     FROM template_exercises te
+     JOIN exercises e ON e.id = te.exercise_id
+     WHERE te.template_id = ?`,
+    [template_id]
+  );
+};
+
+export const deleteTemplateExercise = (id: number) => {
+  const result = db.runSync(
+    `DELETE FROM template_exercises WHERE id = ?`,
+    [id]
+  );
+
+  if (result.changes === 0) {
+    throw new AppError("Failed to delete template exercise", "DB_ERROR");
+  }
+};
+
+//cache functions
+export const saveExerciseCache = (bodyPart: string, data: any[]) => {
+  db.runSync(
+    `INSERT OR REPLACE INTO exercise_cache (body_part, data)
+     VALUES (?, ?)`,
+    [bodyPart, JSON.stringify(data)]
+  );
+};
+
+export const getExerciseCache = (bodyPart: string) => {
+  const result = db.getFirstSync(
+    `SELECT data FROM exercise_cache WHERE body_part = ?`,
+    [bodyPart]
+  );
+
+  if (!result) return null;
+
+  return JSON.parse(result.data);
 };
