@@ -1,20 +1,19 @@
-import { router } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
+import { createTemplate } from "@/database/db";
+import { useState } from "react";
 import Button from "../UI/Button";
 import Container from "../UI/Container";
 import InputField from "../UI/InputField";
 import Typography from "../UI/Typography";
 import BaseModal from "./baseModal";
-import { useState } from "react";
-import { createTemplate } from "@/database/db";
-import { useAuth } from "@/context/AuthContext";
 
 type Props = {
   visible: boolean;
-  onCreated();
-  onClose();
+  onTemplateCreated?: () => void;
+  onClose: () => void;
 };
 
-export default function TemplateModal({ visible, onClose }: Props) {
+export default function TemplateModal({ visible, onClose, onTemplateCreated }: Props) {
   const [name, setName] = useState("");
   const { user } = useAuth();
 
@@ -31,6 +30,9 @@ export default function TemplateModal({ visible, onClose }: Props) {
             createTemplate(name, user.id);
             setName("");
             onClose();
+            if (onTemplateCreated) {
+              onTemplateCreated();
+            }
           }}
         />
       </Container>

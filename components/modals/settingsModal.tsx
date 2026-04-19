@@ -1,5 +1,6 @@
 // components/modals/SettingsModal.tsx
 import { Colors } from "@/constants/theme";
+import { useAuth } from "@/context/AuthContext";
 import { useSettings } from "@/context/SettingsContext";
 import { router } from "expo-router";
 import React from "react";
@@ -16,6 +17,13 @@ type Props = {
 
 export default function SettingsModal({ visible, onClose }: Props) {
   const { weightUnit, setWeightUnit } = useSettings();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    onClose();
+    router.replace("/");
+  };
 
   return (
     <BaseModal visible={visible} onClose={onClose}>
@@ -64,11 +72,8 @@ export default function SettingsModal({ visible, onClose }: Props) {
         </View>
 
         <Button
-          title="logout"
-          onPress={() => {
-            onClose();
-            router.push("/");
-          }}
+          title="Logout"
+          onPress={handleLogout}
         />
       </Container>
     </BaseModal>

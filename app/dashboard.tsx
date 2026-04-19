@@ -1,30 +1,29 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
 import { router } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 
+import Button from "@/components/UI/Button";
 import Container from "@/components/UI/Container";
 import Typography from "@/components/UI/Typography";
-import Button from "@/components/UI/Button";
 
+import TemplateModal from "@/components/modals/templateModal";
 import { useAuth } from "@/context/AuthContext";
 import { getTemplatesByUser } from "@/database/db";
-import TemplateModal from "@/components/modals/templateModal";
-import SaveTemplateModal from "@/components/modals/saveTemplateModal";
 
 export default function DashboardScreen() {
     const { user } = useAuth();
-    const [templates, setTemplates] = useState([]);
+    const [templates, setTemplates] = useState<any[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
 
-    const loadTemplates = () => {
+    const loadTemplates = useCallback(() => {
         if (!user) return;
         const data = getTemplatesByUser(user.id);
         setTemplates(data);
-      };
+      }, [user]);
 
       useEffect(() => {
         loadTemplates();
-    }, [user]);
+    }, [loadTemplates]);
 
     return (
         <Container>
@@ -47,7 +46,7 @@ export default function DashboardScreen() {
         <TemplateModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
-                onCreated={loadTemplates}
+                onTemplateCreated={loadTemplates}
               />
         </Container>
         );

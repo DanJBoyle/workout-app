@@ -33,6 +33,7 @@ export const initDB = () => {
       exercise_id INTEGER,
       sets INTEGER,
       reps INTEGER,
+      weight REAL,
       FOREIGN KEY (template_id) REFERENCES templates(id),
       FOREIGN KEY (exercise_id) REFERENCES exercises(id)
     );
@@ -134,7 +135,7 @@ export const createOrGetExercise = (
   const existing = db.getFirstSync(
     `SELECT id FROM exercises WHERE api_id = ?`,
     [api_id]
-  );
+  ) as { id: number } | null;
 
   if (existing) return existing.id;
 
@@ -152,11 +153,12 @@ export const addExercisesToTemplate = (
   template_id: number,
   exercise_id: number,
   sets: number,
-  reps: number
+  reps: number,
+  weight?: number
 ): number => {
   const result = db.runSync(
-    `INSERT INTO template_exercises (template_id, exercise_id, sets, reps) VALUES (?, ?, ?, ?)`,
-    [template_id, exercise_id, sets, reps]
+    `INSERT INTO template_exercises (template_id, exercise_id, sets, reps, weight) VALUES (?, ?, ?, ?, ?)`,
+    [template_id, exercise_id, sets, reps, weight || null]
   );
 
   if (result.changes === 0) {
@@ -169,13 +171,14 @@ export const addExercisesToTemplate = (
 export const updateTemplateExercise = (
   id: number,
   sets: number,
-  reps: number
+  reps: number,
+  weight?: number
 ) => {
   const result = db.runSync(
     `UPDATE template_exercises
-     SET sets = ?, reps = ?
+     SET sets = ?, reps = ?, weight = ?
      WHERE id = ?`,
-    [sets, reps, id]
+    [sets, reps, weight || null, id]
   );
 
   if (result.changes === 0) {
@@ -191,6 +194,7 @@ export const getExercisesForTemplate = (template_id: number) => {
         te.template_id,
         te.exercise_id,
         te.sets,
+        te.weight,
         te.reps,
         e.name
      FROM template_exercises te
@@ -224,7 +228,7 @@ export const getExerciseCache = (bodyPart: string) => {
   const result = db.getFirstSync(
     `SELECT data FROM exercise_cache WHERE body_part = ?`,
     [bodyPart]
-  );
+  ) as { data: string } | null;
 
   if (!result) return null;
 

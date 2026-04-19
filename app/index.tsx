@@ -3,10 +3,9 @@ import Container from "@/components/UI/Container";
 import InputField from "@/components/UI/InputField";
 import Typography from "@/components/UI/Typography";
 import { useAuth } from "@/context/AuthContext";
-import { findByEmail, registerUser } from "@/database/db";
 import { router } from "expo-router";
-import { useState } from "react";
-import { AppError, parseError } from "../util/errors";
+import { useEffect, useState } from "react";
+import { parseError } from "../util/errors";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -14,7 +13,14 @@ export default function LoginScreen() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const { login, register } = useAuth();
+  const { login, register, user } = useAuth();
+
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    if (user) {
+      router.replace("/(tabs)/dashboard");
+    }
+  }, [user]);
 
   const handleRegister = async () => {
     try {
@@ -34,7 +40,7 @@ export default function LoginScreen() {
       setError("");
       setSuccess("");
       await login(email, password);
-      router.replace("/dashboard");
+      router.replace("/(tabs)/dashboard");
     } catch (err) {
       setError(parseError(err));
     }

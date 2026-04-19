@@ -1,13 +1,14 @@
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
 
-import Container from "@/components/UI/Container";
-import Typography from "@/components/UI/Typography";
-import InputField from "@/components/UI/InputField";
 import Button from "@/components/UI/Button";
+import Container from "@/components/UI/Container";
+import InputField from "@/components/UI/InputField";
+import Typography from "@/components/UI/Typography";
 
-import ExerciseModal from "@/components/modals/ExerciseModal";
+import ExerciseModal from "@/components/modals/exerciseModal";
+import { addExercisesToTemplate, createOrGetExercise } from "@/database/db";
 import { getExercisesSmart } from "@/database/exerciseService";
 
 export default function ExerciseScreen() {
@@ -27,15 +28,29 @@ const search = async () => {
     setModalVisible(true);
   };
 
-  const handleAdd = (exercise: any) => {
-    router.replace({
-      pathname: "/workout",
-      params: {
-        templateId,
-        newExercise: JSON.stringify({...exercise, bodyPart})
-        }
-      }
-    );
+  const handleAdd = async (exercise: any) => {
+    try {
+      // Create/get exercise in database using bodyPart from search
+      const localExerciseId = createOrGetExercise(
+        exercise.name,
+        bodyPart,  // Use the search bodyPart, not exercise.bodyPart
+        exercise.id
+      );
+
+      // Add exercise to template immediately with default values
+      addExercisesToTemplate(
+        Number(templateId),
+        localExerciseId,
+        0,  // default sets
+        0,  // default reps
+        undefined  // default weight
+      );
+
+      // Return to workout screen
+      router.back();
+    } catch (error) {
+      console.error("Failed to add exercise:", error);
+    }
   };
 
   return (

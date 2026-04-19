@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import Typography from '@/components/UI/Typography';
-import Container from '@/components/UI/Container';
 import Button from '@/components/UI/Button';
+import Container from '@/components/UI/Container';
 import InputField from '@/components/UI/InputField';
-import { SettingsProvider, useSettings } from '@/context/SettingsContext';
-import { getExercisesForTemplate, updateTemplateExercise, addExercisesToTemplate, createOrGetExercise} from '@/database/db';
+import Typography from '@/components/UI/Typography';
 import { useAuth } from "@/context/AuthContext";
+import { SettingsProvider, useSettings } from '@/context/SettingsContext';
+import { deleteTemplateExercise, getExercisesForTemplate, updateTemplateExercise } from '@/database/db';
 
 function WorkoutContent() {
-  const { newExercise } = useLocalSearchParams();
   const [exercises, setExercises] = useState<any[]>([]);
   const { templateId } = useLocalSearchParams();
   const { weightUnit } = useSettings();
@@ -20,8 +19,10 @@ function WorkoutContent() {
     [key: string]: { sets: string; reps: string; weight: string };
   }>({});
 
+  const [exerciseComplete, setExerciseComplete] = useState<{ [key: string]: boolean }>({});
+
   // load template exercises
-  useEffect(() => {
+  const loadExercises = useCallback(() => {
     if (!templateId) return;
 
     const data = getExercisesForTemplate(Number(templateId));
@@ -35,47 +36,28 @@ function WorkoutContent() {
       initialState[key] = {
         sets: ex.sets?.toString() || "",
         reps: ex.reps?.toString() || "",
-        weight: "",
+        weight: ex.weight?.toString() || "",
       };
     });
 
     setExerciseInputs(initialState);
+
+    const completionState: { [key: string]: boolean } = {};
+    data.forEach((ex: any) => {
+      completionState[ex.template_exercise_id] = false;
+    });
+    setExerciseComplete(completionState);
   }, [templateId]);
 
-
-  // handle new exercise coming back
   useEffect(() => {
-    if (!newExercise) return;
+    loadExercises();
+  }, [loadExercises]);
 
-    const parsed = JSON.parse(newExercise as string);
-
-    const localExerciseId = createOrGetExercise(
-      parsed.name,
-      parsed.bodyPart,
-      parsed.id
-    );
-
-    const newItem = {
-      template_exercise_id: null,
-      exercise_id: localExerciseId,
-      name: parsed.name,
-      sets: "",
-      reps: "",
-    };
-
-    setExercises((prev) => [...prev, newItem]);
-
-    const key = `new-${localExerciseId}`;
-
-    setExerciseInputs((prev) => ({
-      ...prev,
-      [key]: {
-        sets: "",
-        reps: "",
-        weight: "",
-      },
-    }));
-  }, [newExercise]);
+  useFocusEffect(
+    useCallback(() => {
+      loadExercises();
+    }, [loadExercises])
+  );
 
   const updateExercise = (
     key: string,
@@ -91,33 +73,50 @@ function WorkoutContent() {
     }));
   };
 
-  const handleSaveTemplate = () => {
+  const toggleComplete = (key: string) => {
+    setExerciseComplete((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const allComplete =
+    exercises.length > 0 &&
+    exercises.every((ex) => exerciseComplete[ex.template_exercise_id]);
+
+  const deleteExercise = (templateExerciseId: number) => {
+    try {
+      deleteTemplateExercise(templateExerciseId);
+      // Reload exercises after deletion
+      loadExercises();
+    } catch (error) {
+      console.error("Failed to delete exercise:", error);
+    }
+  };
+
+  const saveAllExercises = () => {
     exercises.forEach((exercise) => {
-      const key = exercise.template_exercise_id ?? `new-${exercise.exercise_id}`;
+      const key = exercise.template_exercise_id;
       const input = exerciseInputs[key];
 
-      if (!input) return;
+      if (!input || !exercise.template_exercise_id) return;
 
-      // UPDATE existing
-      if (exercise.template_exercise_id) {
-        updateTemplateExercise(
-          exercise.template_exercise_id,
-          Number(input.sets) || 0,
-          Number(input.reps) || 0
-        );
-      }
-      // INSERT new
-      else {
-        addExercisesToTemplate(
-          Number(templateId),
-          exercise.exercise_id,
-          Number(input.sets) || 0,
-          Number(input.reps) || 0
-        );
-      }
+      const weight = input.weight ? Number(input.weight) : undefined;
+
+      updateTemplateExercise(
+        exercise.template_exercise_id,
+        Number(input.sets) || 0,
+        Number(input.reps) || 0,
+        weight
+      );
     });
+  };
 
+  const handleSaveTemplate = () => {
+    saveAllExercises();
     router.back();
+  };
+
+  const handleCompleteWorkout = () => {
+    saveAllExercises();
+    router.push('/completion');
   };
 
   return (
@@ -129,7 +128,7 @@ function WorkoutContent() {
           onPress={() => router.push({
               pathname: "/exercise",
               params: {templateId}
-              });}
+              })}
           style={styles.addButton}
         />
 
@@ -138,14 +137,29 @@ function WorkoutContent() {
         )}
 
         {exercises.map((exercise) => {
-          const key = exercise.template_exercise_id ?? `new-${exercise.exercise_id}`;
+          const key = exercise.template_exercise_id;
           const input = exerciseInputs[key] || {};
 
           return (
             <View key={key} style={styles.exerciseCard}>
-              <Typography variant="title" style={styles.exerciseName}>
-                {exercise.name}
-              </Typography>
+              <View style={styles.exerciseHeader}>
+                <Pressable
+                  onPress={() => toggleComplete(key)}
+                  style={[styles.checkbox, exerciseComplete[key] && styles.checkboxChecked]}
+                >
+                  {exerciseComplete[key] && (
+                    <Typography style={styles.checkmark}>✓</Typography>
+                  )}
+                </Pressable>
+                <Typography variant="title" style={styles.exerciseName}>
+                  {exercise.name}
+                </Typography>
+                <Button
+                  title="×"
+                  onPress={() => deleteExercise(key)}
+                  style={styles.deleteButton}
+                />
+              </View>
 
               <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
@@ -188,18 +202,25 @@ function WorkoutContent() {
 
       <View style={styles.footer}>
         <Button title="Save Template" onPress={handleSaveTemplate} />
+        <Pressable
+          onPress={handleCompleteWorkout}
+          style={[styles.completeButton, !allComplete && styles.completeButtonDisabled]}
+          pointerEvents={allComplete ? 'auto' : 'none'}
+        >
+          <Typography style={styles.completeButtonText}>Complete Workout</Typography>
+        </Pressable>
       </View>
     </Container>
   );
 }
 
 export default function WorkoutScreen() {
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
 
-  if (!currentUser) return null;
+  if (!user) return null;
 
   return (
-    <SettingsProvider userId={currentUser.id.toString()}>
+    <SettingsProvider>
       <WorkoutContent />
     </SettingsProvider>
   );
@@ -224,9 +245,21 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
     marginBottom: 15,
   },
-  exerciseName: {
+  exerciseHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 15,
+  },
+  exerciseName: {
     fontSize: 18,
+    flex: 1,
+  },
+  deleteButton: {
+    backgroundColor: '#dc3545',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minWidth: 40,
   },
   inputRow: {
     flexDirection: 'row',
@@ -244,5 +277,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#e9ecef',
+    gap: 10,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#6A3DE8',
+    marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#6A3DE8',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: 'bold',
+  },
+  completeButton: {
+    backgroundColor: '#22c55e',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  completeButtonDisabled: {
+    opacity: 0.4,
+  },
+  completeButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   }
 });
