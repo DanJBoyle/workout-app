@@ -1,27 +1,44 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
 import Button from "@/components/UI/Button";
 import Container from "@/components/UI/Container";
-import InputField from "@/components/UI/InputField";
 import Typography from "@/components/UI/Typography";
 
 import ExerciseModal from "@/components/modals/exerciseModal";
 import { addExercisesToTemplate, createOrGetExercise } from "@/database/db";
 import { getExercisesSmart } from "@/database/exerciseService";
 
+const BODY_PARTS = [
+  "BACK",
+  "BICEPS",
+  "CALVES",
+  "CHEST",
+  "FULL BODY",
+  "HIPS",
+  "QUADRICEPS",
+  "SHOULDERS",
+  "THIGHS",
+  "TRICEPS",
+  "UPPER ARMS",
+  "WAIST",
+];
+
 export default function ExerciseScreen() {
   const [bodyPart, setBodyPart] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const { templateId } = useLocalSearchParams();
 
-const search = async () => {
-  const data = await getExercisesSmart(bodyPart);
-  setResults(data);
-};
+  const search = async (part: string) => {
+    setBodyPart(part);
+    setDropdownOpen(false);
+    const data = await getExercisesSmart(part);
+    setResults(data);
+  };
 
   const handleSelect = (exercise: any) => {
     setSelected(exercise);
@@ -30,23 +47,20 @@ const search = async () => {
 
   const handleAdd = async (exercise: any) => {
     try {
-      // Create/get exercise in database using bodyPart from search
       const localExerciseId = createOrGetExercise(
         exercise.name,
-        bodyPart,  // Use the search bodyPart, not exercise.bodyPart
-        exercise.id
+        bodyPart,
+        exercise.exerciseId
       );
 
-      // Add exercise to template immediately with default values
       addExercisesToTemplate(
         Number(templateId),
         localExerciseId,
-        0,  // default sets
-        0,  // default reps
-        undefined  // default weight
+        0,
+        0,
+        undefined
       );
 
-      // Return to workout screen
       router.back();
     } catch (error) {
       console.error("Failed to add exercise:", error);
@@ -54,25 +68,67 @@ const search = async () => {
   };
 
   return (
-    <Container>
+    <Container style={styles.container}>
       <Typography variant="title">Find Exercises</Typography>
+      <Typography style={styles.subtitle}>Select a muscle group to browse exercises</Typography>
 
-      <InputField
-        placeholder="e.g. chest, back, legs"
-        value={bodyPart}
-        onChangeText={setBodyPart}
-      />
+      {/* Dropdown trigger */}
+      <Pressable
+        onPress={() => setDropdownOpen(true)}
+        style={styles.dropdownTrigger}
+      >
+        <Typography style={styles.dropdownTriggerText}>
+          {bodyPart || "Select muscle group…"}
+        </Typography>
+        <Typography style={styles.dropdownArrow}>▾</Typography>
+      </Pressable>
 
-      <Button title="Search" onPress={search} />
+      {/* Dropdown modal */}
+      <Modal
+        visible={dropdownOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDropdownOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setDropdownOpen(false)}
+        >
+          <View style={styles.dropdownList}>
+            {BODY_PARTS.map((part) => (
+              <Pressable
+                key={part}
+                onPress={() => search(part)}
+                style={[
+                  styles.dropdownItem,
+                  bodyPart === part && styles.dropdownItemSelected,
+                ]}
+              >
+                <Typography
+                  style={[
+                    styles.dropdownItemText,
+                    bodyPart === part && styles.dropdownItemTextSelected,
+                  ]}
+                >
+                  {part}
+                </Typography>
+              </Pressable>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
-      {results.map((ex) => (
-        <View key={ex.id} style={{ marginVertical: 8 }}>
-          <Button
-            title={ex.name}
-            onPress={() => handleSelect(ex)}
-          />
-        </View>
-      ))}
+      <ScrollView style={styles.results} showsVerticalScrollIndicator={false}>
+        {results.length === 0 && bodyPart !== "" && (
+          <Typography style={styles.emptyText}>No exercises found.</Typography>
+        )}
+        {results.map((ex) => (
+          <View key={ex.exerciseId} style={styles.resultItem}>
+            <Button title={ex.name} onPress={() => handleSelect(ex)} />
+          </View>
+        ))}
+      </ScrollView>
 
       <ExerciseModal
         visible={modalVisible}
@@ -83,3 +139,79 @@ const search = async () => {
     </Container>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  subtitle: {
+    color: "#6b7280",
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  dropdownTrigger: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1.5,
+    borderColor: "#6A3DE8",
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    marginBottom: 20,
+  },
+  dropdownTriggerText: {
+    color: "#111827",
+    fontSize: 15,
+  },
+  dropdownArrow: {
+    color: "#6A3DE8",
+    fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  dropdownList: {
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    overflow: "hidden",
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  dropdownItem: {
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  dropdownItemSelected: {
+    backgroundColor: "#ede9fb",
+  },
+  dropdownItemText: {
+    fontSize: 15,
+    color: "#111827",
+  },
+  dropdownItemTextSelected: {
+    color: "#6A3DE8",
+    fontWeight: "700",
+  },
+  results: {
+    flex: 1,
+  },
+  resultItem: {
+    marginVertical: 4,
+  },
+  emptyText: {
+    color: "#6b7280",
+    textAlign: "center",
+    marginTop: 20,
+  },
+});
