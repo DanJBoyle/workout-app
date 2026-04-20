@@ -1,14 +1,23 @@
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
-import Button from '@/components/UI/Button';
-import Container from '@/components/UI/Container';
-import InputField from '@/components/UI/InputField';
-import Typography from '@/components/UI/Typography';
+import Button from "@/components/UI/Button";
+import Container from "@/components/UI/Container";
+import InputField from "@/components/UI/InputField";
+import Typography from "@/components/UI/Typography";
 import { useAuth } from "@/context/AuthContext";
-import { SettingsProvider, useSettings } from '@/context/SettingsContext';
-import { deleteTemplateExercise, getExercisesForTemplate, updateTemplateExercise } from '@/database/db';
+import { SettingsProvider, useSettings } from "@/context/SettingsContext";
+import {
+  deleteTemplateExercise,
+  getExercisesForTemplate,
+  updateTemplateExercise,
+} from "@/database/db";
+import React from "react";
+
+// Importing UI components
+
+// Importing BOTH Auth and Settings Contexts
 
 function WorkoutContent() {
   const [exercises, setExercises] = useState<any[]>([]);
@@ -19,7 +28,9 @@ function WorkoutContent() {
     [key: string]: { sets: string; reps: string; weight: string };
   }>({});
 
-  const [exerciseComplete, setExerciseComplete] = useState<{ [key: string]: boolean }>({});
+  const [exerciseComplete, setExerciseComplete] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   // load template exercises
   const loadExercises = useCallback(() => {
@@ -56,13 +67,13 @@ function WorkoutContent() {
   useFocusEffect(
     useCallback(() => {
       loadExercises();
-    }, [loadExercises])
+    }, [loadExercises]),
   );
 
   const updateExercise = (
     key: string,
     field: "sets" | "reps" | "weight",
-    value: string
+    value: string,
   ) => {
     setExerciseInputs((prev) => ({
       ...prev,
@@ -104,7 +115,7 @@ function WorkoutContent() {
         exercise.template_exercise_id,
         Number(input.sets) || 0,
         Number(input.reps) || 0,
-        weight
+        weight,
       );
     });
   };
@@ -116,19 +127,23 @@ function WorkoutContent() {
 
   const handleCompleteWorkout = () => {
     saveAllExercises();
-    router.push('/completion');
+    router.push("/completion");
   };
 
   return (
     <Container style={styles.mainContainer}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <Button
           title="Add Exercise"
-          onPress={() => router.push({
+          onPress={() =>
+            router.push({
               pathname: "/exercise",
-              params: {templateId}
-              })}
+              params: { templateId },
+            })
+          }
           style={styles.addButton}
         />
 
@@ -145,7 +160,10 @@ function WorkoutContent() {
               <View style={styles.exerciseHeader}>
                 <Pressable
                   onPress={() => toggleComplete(key)}
-                  style={[styles.checkbox, exerciseComplete[key] && styles.checkboxChecked]}
+                  style={[
+                    styles.checkbox,
+                    exerciseComplete[key] && styles.checkboxChecked,
+                  ]}
                 >
                   {exerciseComplete[key] && (
                     <Typography style={styles.checkmark}>✓</Typography>
@@ -166,9 +184,7 @@ function WorkoutContent() {
                   <InputField
                     label="Sets"
                     value={input.sets || ""}
-                    onChangeText={(val) =>
-                      updateExercise(key, "sets", val)
-                    }
+                    onChangeText={(val) => updateExercise(key, "sets", val)}
                     keyboardType="numeric"
                   />
                 </View>
@@ -177,9 +193,7 @@ function WorkoutContent() {
                   <InputField
                     label="Reps"
                     value={input.reps || ""}
-                    onChangeText={(val) =>
-                      updateExercise(key, "reps", val)
-                    }
+                    onChangeText={(val) => updateExercise(key, "reps", val)}
                     keyboardType="numeric"
                   />
                 </View>
@@ -188,9 +202,7 @@ function WorkoutContent() {
                   <InputField
                     label={`Weight (${weightUnit})`}
                     value={input.weight || ""}
-                    onChangeText={(val) =>
-                      updateExercise(key, "weight", val)
-                    }
+                    onChangeText={(val) => updateExercise(key, "weight", val)}
                     keyboardType="numeric"
                   />
                 </View>
@@ -204,10 +216,15 @@ function WorkoutContent() {
         <Button title="Save Template" onPress={handleSaveTemplate} />
         <Pressable
           onPress={handleCompleteWorkout}
-          style={[styles.completeButton, !allComplete && styles.completeButtonDisabled]}
-          pointerEvents={allComplete ? 'auto' : 'none'}
+          style={[
+            styles.completeButton,
+            !allComplete && styles.completeButtonDisabled,
+          ]}
+          pointerEvents={allComplete ? "auto" : "none"}
         >
-          <Typography style={styles.completeButtonText}>Complete Workout</Typography>
+          <Typography style={styles.completeButtonText}>
+            Complete Workout
+          </Typography>
         </Pressable>
       </View>
     </Container>
@@ -238,17 +255,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   exerciseCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     padding: 15,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: "#e9ecef",
     marginBottom: 15,
   },
   exerciseHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 15,
   },
   exerciseName: {
@@ -256,27 +273,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deleteButton: {
-    backgroundColor: '#dc3545',
+    backgroundColor: "#dc3545",
     paddingHorizontal: 12,
     paddingVertical: 8,
     minWidth: 40,
   },
   inputRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   inputWrapper: {
-    width: '30%',
+    width: "30%",
   },
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopWidth: 1,
-    borderTopColor: '#e9ecef',
+    borderTopColor: "#e9ecef",
     gap: 10,
   },
   checkbox: {
@@ -284,32 +301,32 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#6A3DE8',
+    borderColor: "#6A3DE8",
     marginRight: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   checkboxChecked: {
-    backgroundColor: '#6A3DE8',
+    backgroundColor: "#6A3DE8",
   },
   checkmark: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
     lineHeight: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   completeButton: {
-    backgroundColor: '#22c55e',
+    backgroundColor: "#22c55e",
     paddingVertical: 14,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   completeButtonDisabled: {
     opacity: 0.4,
   },
   completeButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
-  }
+  },
 });

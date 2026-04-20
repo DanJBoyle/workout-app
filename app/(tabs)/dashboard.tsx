@@ -20,7 +20,7 @@ export default function DashboardScreen() {
         const data = getTemplatesByUser(user.id);
         setTemplates(data);
       }
-    }, [user])
+    }, [user]),
   );
 
   const handleTemplateCreate = () => {
@@ -43,7 +43,10 @@ export default function DashboardScreen() {
 
   return (
     <Container style={styles.mainContainer}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <Typography variant="title" style={styles.title}>
           My Templates
         </Typography>
@@ -73,7 +76,9 @@ export default function DashboardScreen() {
               <Typography variant="title" style={styles.templateName}>
                 {template.name}
               </Typography>
-              <Typography style={styles.tapText}>Tap to start workout</Typography>
+              <Typography style={styles.tapText}>
+                Tap to start workout
+              </Typography>
             </TouchableOpacity>
           ))
         )}
@@ -102,19 +107,19 @@ const styles = StyleSheet.create({
   },
   createButton: {
     marginBottom: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
   },
   emptyText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 20,
-    color: '#999',
+    color: "#999",
   },
   templateCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: "#f8f9fa",
     padding: 20,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderColor: "#e9ecef",
     marginBottom: 15,
   },
   templateName: {
@@ -123,6 +128,6 @@ const styles = StyleSheet.create({
   },
   tapText: {
     fontSize: 12,
-    color: '#007AFF',
+    color: "#007AFF",
   },
 });

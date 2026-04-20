@@ -48,15 +48,12 @@ export const initDB = () => {
 
 // USERS
 export const findByEmail = (emailInput: string) => {
-  return db.getFirstSync(
-    `SELECT * FROM users WHERE email = ?`,
-    [emailInput]
-  );
+  return db.getFirstSync(`SELECT * FROM users WHERE email = ?`, [emailInput]);
 };
 
 export const registerUser = (
   emailInput: string,
-  passwordInput: string
+  passwordInput: string,
 ): number => {
   const existing = findByEmail(emailInput);
   if (existing) {
@@ -65,7 +62,7 @@ export const registerUser = (
 
   const result = db.runSync(
     `INSERT INTO users (email, password) VALUES (?, ?)`,
-    [emailInput, passwordInput]
+    [emailInput, passwordInput],
   );
 
   if (result.changes === 0) {
@@ -76,13 +73,10 @@ export const registerUser = (
 };
 
 // TEMPLATES
-export const createTemplate = (
-  name: string,
-  user_id: number
-): number => {
+export const createTemplate = (name: string, user_id: number): number => {
   const result = db.runSync(
     `INSERT INTO templates (name, user_id) VALUES (?, ?)`,
-    [name, user_id]
+    [name, user_id],
   );
 
   if (result.changes === 0) {
@@ -93,20 +87,14 @@ export const createTemplate = (
 };
 
 export const getTemplatesByUser = (user_id: number) => {
-  return db.getAllSync(
-    `SELECT * FROM templates WHERE user_id = ?`,
-    [user_id]
-  );
+  return db.getAllSync(`SELECT * FROM templates WHERE user_id = ?`, [user_id]);
 };
 
 // EXERCISES
-export const createExercise = (
-  name: string,
-  group: string
-): number => {
+export const createExercise = (name: string, group: string): number => {
   const result = db.runSync(
     `INSERT INTO exercises (name, "group") VALUES (?, ?)`,
-    [name, group]
+    [name, group],
   );
 
   if (result.changes === 0) {
@@ -121,20 +109,17 @@ export const getAllExercises = () => {
 };
 
 export const getExercisesByGroup = (group: string) => {
-  return db.getAllSync(
-    `SELECT * FROM exercises WHERE "group" = ?`,
-    [group]
-  );
+  return db.getAllSync(`SELECT * FROM exercises WHERE "group" = ?`, [group]);
 };
 
 export const createOrGetExercise = (
   name: string,
   group: string,
-  api_id: string
+  api_id: string,
 ): number => {
   const existing = db.getFirstSync(
     `SELECT id FROM exercises WHERE api_id = ?`,
-    [api_id]
+    [api_id],
   ) as { id: number } | null;
 
   if (existing) return existing.id;
@@ -142,7 +127,7 @@ export const createOrGetExercise = (
   const result = db.runSync(
     `INSERT INTO exercises (name, "group", api_id)
      VALUES (?, ?, ?)`,
-    [name, group, api_id]
+    [name, group, api_id],
   );
 
   return result.lastInsertRowId;
@@ -154,11 +139,11 @@ export const addExercisesToTemplate = (
   exercise_id: number,
   sets: number,
   reps: number,
-  weight?: number
+  weight?: number,
 ): number => {
   const result = db.runSync(
     `INSERT INTO template_exercises (template_id, exercise_id, sets, reps, weight) VALUES (?, ?, ?, ?, ?)`,
-    [template_id, exercise_id, sets, reps, weight || null]
+    [template_id, exercise_id, sets, reps, weight || null],
   );
 
   if (result.changes === 0) {
@@ -172,13 +157,13 @@ export const updateTemplateExercise = (
   id: number,
   sets: number,
   reps: number,
-  weight?: number
+  weight?: number,
 ) => {
   const result = db.runSync(
     `UPDATE template_exercises
      SET sets = ?, reps = ?, weight = ?
      WHERE id = ?`,
-    [sets, reps, weight || null, id]
+    [sets, reps, weight || null, id],
   );
 
   if (result.changes === 0) {
@@ -200,15 +185,14 @@ export const getExercisesForTemplate = (template_id: number) => {
      FROM template_exercises te
      JOIN exercises e ON e.id = te.exercise_id
      WHERE te.template_id = ?`,
-    [template_id]
+    [template_id],
   );
 };
 
 export const deleteTemplateExercise = (id: number) => {
-  const result = db.runSync(
-    `DELETE FROM template_exercises WHERE id = ?`,
-    [id]
-  );
+  const result = db.runSync(`DELETE FROM template_exercises WHERE id = ?`, [
+    id,
+  ]);
 
   if (result.changes === 0) {
     throw new AppError("Failed to delete template exercise", "DB_ERROR");
@@ -220,17 +204,29 @@ export const saveExerciseCache = (bodyPart: string, data: any[]) => {
   db.runSync(
     `INSERT OR REPLACE INTO exercise_cache (body_part, data)
      VALUES (?, ?)`,
-    [bodyPart, JSON.stringify(data)]
+    [bodyPart, JSON.stringify(data)],
   );
 };
 
 export const getExerciseCache = (bodyPart: string) => {
   const result = db.getFirstSync(
     `SELECT data FROM exercise_cache WHERE body_part = ?`,
-    [bodyPart]
+    [bodyPart],
   ) as { data: string } | null;
 
   if (!result) return null;
 
   return JSON.parse(result.data);
+};
+
+export const loginUser = (emailInput: string, passwordInput: string) => {
+  const user = findByEmail(emailInput) as {
+    id: number;
+    email: string;
+    password: string;
+  } | null;
+  if (!user) throw new AppError("User not found", "NOT_FOUND");
+  if (user.password !== passwordInput)
+    throw new AppError("Invalid password", "INVALID_PASSWORD");
+  return user;
 };
