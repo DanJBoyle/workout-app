@@ -48,8 +48,8 @@ export default function LoginScreen() {
 
   return (
     <Container>
-      <Typography variant="title">Login Screen</Typography>
-      <Typography>Welcome to the Login Screen</Typography>
+      <Typography variant="title">Workout Tracker</Typography>
+      <Typography color="muted">Sign in to continue</Typography>
       <InputField
         label="Email"
         value={email}
