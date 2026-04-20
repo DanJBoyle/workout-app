@@ -1,134 +1,64 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
-import { router } from 'expo-router';
+import Button from "@/components/UI/Button";
+import Container from "@/components/UI/Container";
+import InputField from "@/components/UI/InputField";
+import Typography from "@/components/UI/Typography";
+import { Spacing } from "@/constants/theme";
+import { getExercisesForTemplate, db } from "@/database/db";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { StyleSheet, View } from "react-native";
 
-// Importing Daniel's UI components
-import Typography from '@/components/UI/Typography';
-import Container from '@/components/UI/Container';
-import Button from '@/components/UI/Button';
-import InputField from '@/components/UI/InputField';
+export default function CompletionScreen() {
+  const { templateId } = useLocalSearchParams<{ templateId?: string }>();
+  const [templateName, setTemplateName] = useState("");
 
-// Importing Contexts for the wrapper
-import { useAuth } from '@/context/AuthContext';
-import { SettingsProvider } from '@/context/SettingsContext';
+  const exercises = templateId ? getExercisesForTemplate(Number(templateId)) : [];
+  const totalSets = exercises.reduce((sum: number, e: any) => sum + (e.sets ?? 0), 0);
 
-// 1. The main content of the screen
-function CompletionContent() {
-  const [templateName, setTemplateName] = useState('');
-
-  const handleSaveTemplate = () => {
-    if (!templateName) {
-      Alert.alert('Missing Name', 'Please enter a name for this template.');
-      return;
+  const handleSave = () => {
+    if (templateName.trim() && templateId) {
+      db.runSync("UPDATE templates SET name = ? WHERE id = ?", [templateName.trim(), Number(templateId)]);
     }
-    // Austen's DB save function will go here later
-    Alert.alert('Success', `Template "${templateName}" saved!`);
-    setTemplateName('');
+    router.replace("/(tabs)/dashboard");
   };
 
   return (
     <Container style={styles.container}>
-      <View style={styles.header}>
-        <Typography variant="h1">Workout Saved</Typography>
-      </View>
+      <Typography variant="title" style={styles.center}>Workout Saved</Typography>
 
-      {/* Save Template Section */}
-      <View style={styles.sectionCard}>
-        <InputField
-          label="Template Name"
-          placeholder="e.g., Killer Leg Day"
-          value={templateName}
-          onChangeText={setTemplateName}
-        />
-        <Button
-          title="Save as Template"
-          onPress={handleSaveTemplate}
-          style={styles.saveButton}
-        />
-      </View>
+      <InputField
+        label="Template Name"
+        value={templateName}
+        onChangeText={setTemplateName}
+        placeholder="e.g. Killer Leg Day"
+      />
+      <Button title="Save as Template" onPress={handleSave} />
 
-      {/* Non-Functional Records Area */}
-      <View style={styles.sectionCard}>
-        <Typography variant="title" style={styles.summaryTitle}>Workout Summary</Typography>
-
-        <View style={styles.statRow}>
-          <Typography variant="body" style={styles.statLabel}>Duration:</Typography>
-          <Typography variant="body" style={styles.statValue}>45 min</Typography>
+      <View style={styles.summary}>
+        <Typography variant="subtitle">Workout Summary</Typography>
+        <View style={styles.row}>
+          <Typography color="muted">Exercises</Typography>
+          <Typography>{exercises.length}</Typography>
         </View>
-        <View style={styles.statRow}>
-          <Typography variant="body" style={styles.statLabel}>Exercises:</Typography>
-          <Typography variant="body" style={styles.statValue}>5</Typography>
-        </View>
-        <View style={styles.statRow}>
-          <Typography variant="body" style={styles.statLabel}>Total Sets:</Typography>
-          <Typography variant="body" style={styles.statValue}>15</Typography>
-        </View>
-        <View style={styles.statRow}>
-          <Typography variant="body" style={styles.statLabel}>Total Volume:</Typography>
-          <Typography variant="body" style={styles.statValue}>2,450 lbs</Typography>
+        <View style={styles.row}>
+          <Typography color="muted">Total Sets</Typography>
+          <Typography>{totalSets}</Typography>
         </View>
       </View>
-
-      {/* Spacer to push the return button to the bottom */}
-      <View style={{ flex: 1 }} />
 
       <Button
         title="Return to Dashboard"
-        onPress={() => router.replace('/(tabs)/dashboard')}
+        onPress={() => router.replace("/(tabs)/dashboard")}
+        style={styles.back}
       />
     </Container>
   );
 }
 
-// 2. The safety wrapper
-export default function CompletionScreen() {
-  const { currentUser } = useAuth();
-
-  if (!currentUser) return null;
-
-  return (
-    <SettingsProvider userId={currentUser.id.toString()}>
-      <CompletionContent />
-    </SettingsProvider>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 30,
-    marginTop: 20,
-  },
-  sectionCard: {
-    backgroundColor: '#f8f9fa',
-    padding: 20,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    marginBottom: 20,
-  },
-  saveButton: {
-    marginTop: 10,
-  },
-  summaryTitle: {
-    marginBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#dee2e6',
-    paddingBottom: 10,
-  },
-  statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  statLabel: {
-    color: '#6c757d',
-  },
-  statValue: {
-    fontWeight: 'bold',
-  }
+  container: { justifyContent: "center" },
+  center: { textAlign: "center", marginBottom: Spacing.md },
+  summary: { marginTop: Spacing.lg, gap: Spacing.sm, width: "100%" },
+  row: { flexDirection: "row", justifyContent: "space-between" },
+  back: { marginTop: Spacing.lg },
 });

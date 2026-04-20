@@ -1,104 +1,128 @@
-import { router } from 'expo-router';
-import React, { useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
-
-// Importing UI components
-import Button from '@/components/UI/Button';
-import Container from '@/components/UI/Container';
-import Typography from '@/components/UI/Typography';
-
-// Mock data in order to build the UI while the DB fetch function is finalized
-const MOCK_TEMPLATES = [
-  { id: '1', name: 'Upper Body Strength' },
-  { id: '2', name: 'Lower Body Power' },
-  { id: '3', name: 'Full Body HIIT' },
-];
+import TemplateModal from "@/components/modals/templateModal";
+import Button from "@/components/UI/Button";
+import Container from "@/components/UI/Container";
+import Typography from "@/components/UI/Typography";
+import { useAuth } from "@/context/AuthContext";
+import { getTemplatesByUser } from "@/database/db";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 
 export default function DashboardScreen() {
-  const [templates, setTemplates] = useState(MOCK_TEMPLATES);
+  const { user } = useAuth();
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const renderTemplateRow = ({ item }: { item: any }) => (
-    <View style={styles.templateCard}>
-      <Typography variant="body">{item.name}</Typography>
-      <View style={styles.startButtonContainer}>
-        <Button 
-          title="Start" 
-          onPress={() => {
-            // Navigates to the active workout screen
-            router.push({ pathname: '/workout', params: { templateId: item.id } });
-          }} 
-        />
-      </View>
-    </View>
+  // Load templates when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        const data = getTemplatesByUser(user.id);
+        setTemplates(data);
+      }
+    }, [user])
   );
 
-  // Rubric Requirement: Empty State Handling
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Typography variant="body" style={styles.emptyText}>
-        No saved templates yet.
-      </Typography>
-      <Typography variant="body" style={styles.emptyText}>
-        Click "Create New" to build your first routine!
-      </Typography>
-    </View>
-  );
+  const handleTemplateCreate = () => {
+    setModalVisible(false);
+    // Reload templates
+    if (user) {
+      const data = getTemplatesByUser(user.id);
+      setTemplates(data);
+    }
+  };
+
+  if (!user) {
+    return (
+      <Container>
+        <Typography variant="title">Dashboard</Typography>
+        <Typography>Please log in first</Typography>
+      </Container>
+    );
+  }
 
   return (
-    <Container>
-      <View style={styles.header}>
-        <Typography variant="title">My Workouts</Typography>
-        <Button 
-          title="Create New" 
-          onPress={() => router.push('/exercise')} // Navigates to Page 4 to pick exercises
-        />
-      </View>
+    <Container style={styles.mainContainer}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <Typography variant="title" style={styles.title}>
+          My Templates
+        </Typography>
 
-      <FlatList
-        data={templates}
-        keyExtractor={(item) => item.id}
-        renderItem={renderTemplateRow}
-        ListEmptyComponent={renderEmptyState}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
+        <Button
+          title="+ Create New Template"
+          onPress={() => setModalVisible(true)}
+          style={styles.createButton}
+        />
+
+        {templates.length === 0 ? (
+          <Typography style={styles.emptyText}>
+            No templates yet. Create one to get started!
+          </Typography>
+        ) : (
+          templates.map((template) => (
+            <TouchableOpacity
+              key={template.id}
+              style={styles.templateCard}
+              onPress={() =>
+                router.push({
+                  pathname: "/workout",
+                  params: { templateId: template.id },
+                })
+              }
+            >
+              <Typography variant="title" style={styles.templateName}>
+                {template.name}
+              </Typography>
+              <Typography style={styles.tapText}>Tap to start workout</Typography>
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
+
+      <TemplateModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onTemplateCreated={handleTemplateCreate}
       />
     </Container>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  mainContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 30,
+  },
+  title: {
     marginBottom: 20,
-    paddingTop: 10,
+    fontSize: 24,
   },
-  listContainer: {
-    paddingBottom: 20,
-  },
-  templateCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa', // Light grey card background
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-  },
-  startButtonContainer: {
-    width: 100, // Keeps the start buttons uniform
-  },
-  emptyState: {
-    marginTop: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
+  createButton: {
+    marginBottom: 20,
+    backgroundColor: '#007AFF',
   },
   emptyText: {
-    color: '#6c757d',
     textAlign: 'center',
-    marginTop: 5,
-  }
+    marginTop: 20,
+    color: '#999',
+  },
+  templateCard: {
+    backgroundColor: '#f8f9fa',
+    padding: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    marginBottom: 15,
+  },
+  templateName: {
+    fontSize: 18,
+    marginBottom: 8,
+  },
+  tapText: {
+    fontSize: 12,
+    color: '#007AFF',
+  },
 });
