@@ -14,30 +14,24 @@ const SettingsContext = createContext<SettingsContextType | undefined>(
   undefined,
 );
 
-const WEIGHT_UNIT_KEY = (userId: string) => `@settings/${userId}/weightUnit`;
+const WEIGHT_UNIT_KEY = "@settings/weightUnit";
 
-export function SettingsProvider({
-  children,
-  userId,
-}: {
-  children: React.ReactNode;
-  userId: string;
-}) {
+export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [weightUnit, setWeightUnitState] = useState<WeightUnit>("kg");
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(WEIGHT_UNIT_KEY(userId)).then((stored) => {
+    AsyncStorage.getItem(WEIGHT_UNIT_KEY).then((stored) => {
       if (stored === "kg" || stored === "lbs") {
         setWeightUnitState(stored);
       }
       setIsLoaded(true);
     });
-  }, [userId]);
+  }, []);
 
   const setWeightUnit = (unit: WeightUnit) => {
     setWeightUnitState(unit);
-    AsyncStorage.setItem(WEIGHT_UNIT_KEY(userId), unit);
+    AsyncStorage.setItem(WEIGHT_UNIT_KEY, unit);
   };
 
   return (
