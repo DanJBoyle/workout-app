@@ -116,7 +116,7 @@ function WorkoutContent() {
 
   const handleCompleteWorkout = () => {
     saveAllExercises();
-    router.push('/completion');
+    router.push({ pathname: '/completion', params: { templateId } });
   };
 
   return (
